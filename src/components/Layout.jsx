@@ -254,35 +254,11 @@ export default function Layout() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 h-full overflow-y-auto p-4 md:p-8 pb-24 md:pb-12">
+      <main className="flex-1 h-full overflow-y-auto p-4 md:p-8 pb-8 md:pb-12">
         <div className="max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
-
-      {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-2 flex justify-around items-center z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        {navItems.filter(item => item.show).map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/'}
-              className={({ isActive }) =>
-                `flex flex-col items-center py-1 px-2.5 rounded-lg text-[10px] font-medium transition-all ${
-                  isActive
-                    ? 'text-emerald-600 font-bold scale-105'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`
-              }
-            >
-              <Icon className="w-4 h-4 mb-0.5" />
-              <span className="truncate max-w-[64px]">{item.name.replace(' Entry', '').replace(' Approval', '')}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
     </div>
   );
 }
