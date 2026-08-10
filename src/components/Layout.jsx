@@ -62,9 +62,9 @@ export default function Layout() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col md:flex-row font-sans">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 text-slate-900 flex flex-col md:flex-row font-sans">
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 p-5 shrink-0 justify-between">
+      <aside className="hidden md:flex flex-col w-64 h-full bg-white border-r border-slate-200 p-5 shrink-0 justify-between overflow-y-auto">
         <div>
           {/* LOGO */}
           <div className="flex items-center space-x-3 pb-6 border-b border-slate-200">
@@ -158,7 +158,7 @@ export default function Layout() {
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 mb-16 md:mb-0">
+      <main className="flex-1 h-full overflow-y-auto p-4 md:p-8 pb-24 md:pb-12">
         <div className="max-w-7xl mx-auto">
           <Outlet />
         </div>
