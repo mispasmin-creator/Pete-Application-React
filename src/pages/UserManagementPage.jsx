@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -49,6 +50,8 @@ export default function UserManagementPage() {
   const [editFirmName, setEditFirmName] = useState('');
   const [editCustomFirm, setEditCustomFirm] = useState('');
   const [editRole, setEditRole] = useState('User');
+  const [firmNamesOptions, setFirmNamesOptions] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   const [deleteEmail, setDeleteEmail] = useState(null);
 
@@ -69,13 +72,6 @@ export default function UserManagementPage() {
     loadFirmNames();
   }, []);
 
-  // Non-Admin Protection Redirect
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/');
-    }
-  }, [isAdmin, navigate]);
-
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
@@ -91,10 +87,8 @@ export default function UserManagementPage() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchUsers();
-    }
-  }, [isAdmin, fetchUsers]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleAddUserSubmit = async (e) => {
     e.preventDefault();
@@ -248,7 +242,9 @@ export default function UserManagementPage() {
     const s = search.toLowerCase();
     return (
       (u.name && u.name.toLowerCase().includes(s)) ||
+      (u.username && u.username.toLowerCase().includes(s)) ||
       (u.email && u.email.toLowerCase().includes(s)) ||
+      (u.firmName && u.firmName.toLowerCase().includes(s)) ||
       (u.role && u.role.toLowerCase().includes(s))
     );
   });
@@ -308,16 +304,16 @@ export default function UserManagementPage() {
 
       {/* USERS TABLE */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[calc(100vh-280px)] min-h-[380px] overflow-y-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">Name</th>
-                <th className="py-3.5 px-4">User name</th>
-                <th className="py-3.5 px-4">Password</th>
-                <th className="py-3.5 px-4">Firm name</th>
-                <th className="py-3.5 px-4">Assign Role</th>
-                <th className="py-3.5 px-4 text-center">Actions</th>
+            <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
+              <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                <th className="py-3.5 px-4 bg-slate-100">Name</th>
+                <th className="py-3.5 px-4 bg-slate-100">User name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Password</th>
+                <th className="py-3.5 px-4 bg-slate-100">Firm name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Assign Role</th>
+                <th className="py-3.5 px-4 text-center bg-slate-100">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
@@ -418,9 +414,9 @@ export default function UserManagementPage() {
       </div>
 
       {/* ADD USER MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <form onSubmit={handleAddUserSubmit} className="bg-white border border-slate-200 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto animate-fade-in">
+          <form onSubmit={handleAddUserSubmit} className="bg-white border border-slate-200 w-full max-w-md md:max-w-xl rounded-2xl p-6 md:p-8 shadow-2xl space-y-4 my-auto max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h3 className="text-base font-bold text-slate-900">Add New User</h3>
               <button type="button" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-900">✕</button>
@@ -486,6 +482,7 @@ export default function UserManagementPage() {
                     onChange={(e) => setNewFirmName(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-slate-900 outline-none"
                   >
+                    <option value="All">All (Access All Data / Firms)</option>
                     {firmNamesOptions.map((f, i) => (
                       <option key={i} value={f}>{f}</option>
                     ))}
@@ -540,13 +537,14 @@ export default function UserManagementPage() {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* EDIT USER MODAL */}
-      {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <form onSubmit={handleEditUserSubmit} className="bg-white border border-slate-200 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+      {editUser && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto animate-fade-in">
+          <form onSubmit={handleEditUserSubmit} className="bg-white border border-slate-200 w-full max-w-md md:max-w-xl rounded-2xl p-6 md:p-8 shadow-2xl space-y-4 my-auto max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h3 className="text-base font-bold text-slate-900">Edit User Details</h3>
               <button type="button" onClick={() => setEditUser(null)} className="text-slate-400 hover:text-slate-900">✕</button>
@@ -612,6 +610,7 @@ export default function UserManagementPage() {
                     onChange={(e) => setEditFirmName(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-slate-900 outline-none"
                   >
+                    <option value="All">All (Access All Data / Firms)</option>
                     {firmNamesOptions.map((f, i) => (
                       <option key={i} value={f}>{f}</option>
                     ))}
@@ -666,13 +665,14 @@ export default function UserManagementPage() {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* DELETE USER CONFIRMATION MODAL */}
-      {deleteEmail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-slate-200 w-full max-w-sm rounded-2xl p-6 text-center space-y-4 shadow-2xl">
+      {deleteEmail && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto animate-fade-in">
+          <div className="bg-white border border-slate-200 w-full max-w-sm rounded-2xl p-6 text-center space-y-4 shadow-2xl my-auto max-h-[85vh] overflow-y-auto">
             <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
             <h3 className="text-base font-bold text-slate-900">Delete User Account?</h3>
             <p className="text-xs text-slate-500">Are you sure you want to remove user <strong>{deleteEmail}</strong>?</p>
@@ -685,7 +685,8 @@ export default function UserManagementPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

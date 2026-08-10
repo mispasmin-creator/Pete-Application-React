@@ -57,6 +57,7 @@ export default function PeteRecordPage() {
   const fetchEntries = useCallback(async () => {
     setLoading(true);
     try {
+      const hasFullAccess = isAdmin || user?.firmName === 'All';
       const params = {
         page,
         limit,
@@ -67,20 +68,30 @@ export default function PeteRecordPage() {
         groupHead: groupHead === 'All' ? '' : groupHead,
         personName,
         status: 'Approved',
-        createdBy: isAdmin ? '' : user?.email
+        createdBy: hasFullAccess ? '' : (user?.email || ''),
+        firmName: hasFullAccess ? '' : (user?.firmName || '')
       };
 
       const res = await api.getEntries(params);
       if (res.success && res.entries) {
-        setEntries(res.entries);
-        setTotalCount(res.totalCount || res.entries.length);
+        const userFirm = (user?.firmName || '').toLowerCase().trim();
+        const userEmail = (user?.email || '').toLowerCase().trim();
+
+        const filtered = hasFullAccess ? res.entries : res.entries.filter(e => {
+          const eFirm = (e.firmName || '').toLowerCase().trim();
+          const eUser = (e.createdBy || '').toLowerCase().trim();
+          return (userFirm && eFirm === userFirm) || (userEmail && eUser === userEmail);
+        });
+
+        setEntries(filtered);
+        setTotalCount(filtered.length);
       }
     } catch (err) {
       console.error('Failed to fetch entries:', err);
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, startDate, endDate, department, groupHead, personName, isAdmin, user?.email]);
+  }, [page, limit, search, startDate, endDate, department, groupHead, personName, isAdmin, user?.firmName, user?.email]);
 
   useEffect(() => {
     fetchEntries();
@@ -297,19 +308,19 @@ export default function PeteRecordPage() {
 
       {/* TABLE DATA */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[calc(100vh-320px)] min-h-[380px] overflow-y-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">Firm Name</th>
-                <th className="py-3.5 px-4">Date</th>
-                <th className="py-3.5 px-4 text-right">Debit (Out)</th>
-                <th className="py-3.5 px-4 text-right">Credit (In)</th>
-                <th className="py-3.5 px-4">Reason</th>
-                <th className="py-3.5 px-4">Group Head</th>
-                <th className="py-3.5 px-4 text-center">Photo</th>
-                <th className="py-3.5 px-4 text-right">Running Balance</th>
-                <th className="py-3.5 px-4">Remark</th>
+            <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
+              <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Date</th>
+                <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
+                <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
+                <th className="py-3.5 px-4 bg-slate-100">Reason</th>
+                <th className="py-3.5 px-4 bg-slate-100">Group Head</th>
+                <th className="py-3.5 px-4 text-center bg-slate-100">Photo</th>
+                <th className="py-3.5 px-4 text-right bg-slate-100">Running Balance</th>
+                <th className="py-3.5 px-4 bg-slate-100">Remark</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
@@ -451,8 +462,8 @@ export default function PeteRecordPage() {
 
       {/* DETAIL VIEW MODAL */}
       {viewEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-md overflow-y-auto animate-fade-in">
+          <div className="bg-white border border-slate-200 w-full max-w-lg md:max-w-2xl rounded-2xl p-6 md:p-8 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h3 className="text-base font-bold text-slate-900">Entry Details ({viewEntry.id})</h3>
               <button onClick={() => setViewEntry(null)} className="text-slate-400 hover:text-slate-900">✕</button>
@@ -527,8 +538,8 @@ export default function PeteRecordPage() {
 
       {/* EDIT MODAL (ADMIN ONLY) */}
       {editEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <form onSubmit={handleEditSubmit} className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-md overflow-y-auto animate-fade-in">
+          <form onSubmit={handleEditSubmit} className="bg-white border border-slate-200 w-full max-w-lg md:max-w-2xl rounded-2xl p-6 md:p-8 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h3 className="text-base font-bold text-slate-900">Edit Entry ({editEntry.id})</h3>
               <button type="button" onClick={() => setEditEntry(null)} className="text-slate-400 hover:text-slate-900">✕</button>

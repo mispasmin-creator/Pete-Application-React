@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ShieldCheck, CheckCircle, AlertCircle, RefreshCw, Check, X, Clock, History, Eye, FileText, ExternalLink } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -161,19 +162,19 @@ export default function HODApprovalPage() {
       {/* PENDING APPROVALS TABLE */}
       {activeTab === 'pending' && (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[calc(100vh-280px)] min-h-[380px] overflow-y-auto">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Firm Name</th>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4 text-right">Debit (Out)</th>
-                  <th className="py-3.5 px-4 text-right">Credit (In)</th>
-                  <th className="py-3.5 px-4">Reason</th>
-                  <th className="py-3.5 px-4">Group Head</th>
-                  <th className="py-3.5 px-4 text-center">Photo</th>
-                  <th className="py-3.5 px-4 text-right">Running Balance</th>
-                  <th className="py-3.5 px-4">Remark</th>
+              <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
+                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Date</th>
+                  <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
+                  <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Reason</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Group Head</th>
+                  <th className="py-3.5 px-4 text-center bg-slate-100">Photo</th>
+                  <th className="py-3.5 px-4 text-right bg-slate-100">Running Balance</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Remark</th>
                   <th className="py-3.5 px-4 text-center">Action</th>
                 </tr>
               </thead>
@@ -302,19 +303,19 @@ export default function HODApprovalPage() {
       {/* APPROVAL HISTORY TABLE */}
       {activeTab === 'history' && (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[calc(100vh-280px)] min-h-[380px] overflow-y-auto">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Firm Name</th>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4 text-right">Debit (Out)</th>
-                  <th className="py-3.5 px-4 text-right">Credit (In)</th>
-                  <th className="py-3.5 px-4">Reason</th>
-                  <th className="py-3.5 px-4">Group Head</th>
-                  <th className="py-3.5 px-4 text-center">Photo</th>
-                  <th className="py-3.5 px-4 text-right">Running Balance</th>
-                  <th className="py-3.5 px-4">Remark</th>
+              <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
+                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Date</th>
+                  <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
+                  <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Reason</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Group Head</th>
+                  <th className="py-3.5 px-4 text-center bg-slate-100">Photo</th>
+                  <th className="py-3.5 px-4 text-right bg-slate-100">Running Balance</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Remark</th>
                   <th className="py-3.5 px-4 text-center">Status</th>
                 </tr>
               </thead>
@@ -419,9 +420,9 @@ export default function HODApprovalPage() {
       )}
 
       {/* REVIEW & APPROVAL MODAL */}
-      {selectedEntry && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-5 relative my-auto">
+      {selectedEntry && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white border border-slate-200 w-full max-w-lg md:max-w-2xl rounded-2xl p-6 md:p-8 shadow-2xl space-y-5 relative my-auto max-h-[85vh] overflow-y-auto">
             
             {/* MODAL HEADER */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -429,15 +430,10 @@ export default function HODApprovalPage() {
                 <ShieldCheck className="w-5 h-5 text-amber-500" />
                 <span>Review Entry Details</span>
               </h3>
-              <button 
-                onClick={() => setSelectedEntry(null)} 
-                className="text-slate-400 hover:text-slate-900 p-1 rounded-lg transition-colors"
-              >
-                ✕
-              </button>
+              <button onClick={() => setSelectedEntry(null)} className="text-slate-400 hover:text-slate-900">✕</button>
             </div>
 
-            {/* DETAILS GRID */}
+            {/* ENTRY DETAILS GRID */}
             <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
               <div><span className="text-slate-500 font-medium">Firm Name:</span> <p className="font-bold text-slate-900 mt-0.5">{selectedEntry.firmName || '-'}</p></div>
               <div><span className="text-slate-500 font-medium">Date:</span> <p className="font-bold text-slate-900 mt-0.5">{selectedEntry.date || '-'}</p></div>
@@ -446,13 +442,11 @@ export default function HODApprovalPage() {
               <div><span className="text-slate-500 font-medium">Group Head:</span> <p className="font-semibold text-slate-900 mt-0.5">{selectedEntry.groupHead || '-'}</p></div>
               <div><span className="text-slate-500 font-medium">Running Balance:</span> <p className="font-bold text-slate-900 mt-0.5">{formatCurrency(selectedEntry.runningBalance)}</p></div>
               <div className="col-span-2"><span className="text-slate-500 font-medium">Reason / Description:</span> <p className="font-semibold text-slate-800 mt-0.5">{selectedEntry.reason || '-'}</p></div>
-              <div className="col-span-2"><span className="text-slate-500 font-medium">User Remark:</span> <p className="text-slate-600 mt-0.5">{selectedEntry.remarks || '-'}</p></div>
             </div>
 
             {/* PHOTO PREVIEW IF AVAILABLE */}
             {selectedEntry.photoUrl && (
               <div>
-                <span className="text-xs font-semibold text-slate-600 block mb-1.5">Attached Receipt / Document:</span>
                 {(() => {
                   const firstUrl = selectedEntry.photoUrl.split(',')[0].trim();
                   const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
@@ -464,7 +458,7 @@ export default function HODApprovalPage() {
                         href={firstUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-2 px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors shadow-sm"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors shadow-sm"
                       >
                         <FileText className="w-4 h-4" />
                         <span>Open PDF Document in New Tab</span>
@@ -478,7 +472,7 @@ export default function HODApprovalPage() {
                         href={firstUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-2 px-4 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors shadow-sm"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors shadow-sm"
                       >
                         <ExternalLink className="w-4 h-4" />
                         <span>Open Google Drive File</span>
@@ -488,44 +482,36 @@ export default function HODApprovalPage() {
 
                   return (
                     <a href={firstUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={firstUrl} alt="Receipt" className="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-sm" />
+                      <img src={firstUrl} alt="Receipt" className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
                     </a>
                   );
                 })()}
               </div>
             )}
 
-            {/* HOD REMARK INPUT FIELD */}
+            {/* REMARK INPUT */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                HOD Remark (Optional)
+                HOD Remark / Note (Optional)
               </label>
               <input
                 type="text"
-                placeholder="Add approval/rejection remark..."
+                placeholder="e.g. Approved for payment..."
                 value={hodRemark}
                 onChange={(e) => setHodRemark(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
               />
             </div>
 
-            {/* MODAL FOOTER ACTIONS */}
+            {/* MODAL ACTIONS */}
             <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-3">
-              <button
-                onClick={() => setSelectedEntry(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors"
-              >
-                Cancel
-              </button>
-
               <button
                 onClick={() => {
                   handleReject(selectedEntry, hodRemark);
                   setSelectedEntry(null);
-                  setHodRemark('');
                 }}
                 disabled={actionLoading === selectedEntry.id}
-                className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all disabled:opacity-50"
+                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1"
               >
                 <X className="w-4 h-4" />
                 <span>Reject</span>
@@ -535,7 +521,6 @@ export default function HODApprovalPage() {
                 onClick={() => {
                   handleApprove(selectedEntry, hodRemark);
                   setSelectedEntry(null);
-                  setHodRemark('');
                 }}
                 disabled={actionLoading === selectedEntry.id}
                 className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all disabled:opacity-50"
@@ -545,7 +530,8 @@ export default function HODApprovalPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

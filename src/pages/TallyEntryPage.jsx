@@ -191,21 +191,21 @@ export default function TallyEntryPage() {
 
       {/* ENTRIES TABLE */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[calc(100vh-280px)] min-h-[380px] overflow-y-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">Firm Name</th>
-                <th className="py-3.5 px-4">Date</th>
-                <th className="py-3.5 px-4 text-right">Debit (Out)</th>
-                <th className="py-3.5 px-4 text-right">Credit (In)</th>
-                <th className="py-3.5 px-4">Reason / Description</th>
-                <th className="py-3.5 px-4">Group Head</th>
-                <th className="py-3.5 px-4 text-center">Receipt</th>
-                <th className="py-3.5 px-4 text-right">Balance</th>
-                <th className="py-3.5 px-4">HOD Remark</th>
-                {activeTab === 'history' && <th className="py-3.5 px-4">Tally Voucher/Remark</th>}
-                <th className="py-3.5 px-4 text-center">Action</th>
+            <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
+              <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Date</th>
+                <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
+                <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
+                <th className="py-3.5 px-4 bg-slate-100">Reason / Description</th>
+                <th className="py-3.5 px-4 bg-slate-100">Group Head</th>
+                <th className="py-3.5 px-4 text-center bg-slate-100">Receipt</th>
+                <th className="py-3.5 px-4 text-right bg-slate-100">Balance</th>
+                <th className="py-3.5 px-4 bg-slate-100">HOD Remark</th>
+                {activeTab === 'history' && <th className="py-3.5 px-4 bg-slate-100">Tally Voucher/Remark</th>}
+                <th className="py-3.5 px-4 text-center bg-slate-100">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
@@ -334,8 +334,8 @@ export default function TallyEntryPage() {
 
       {/* VERIFY TALLY ENTRY MODAL */}
       {selectedEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-md overflow-y-auto animate-fade-in">
+          <div className="bg-white border border-slate-200 w-full max-w-lg md:max-w-2xl rounded-2xl p-6 md:p-8 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <FileCheck className="w-5 h-5 text-teal-600" />

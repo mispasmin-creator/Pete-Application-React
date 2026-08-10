@@ -123,27 +123,31 @@ function mapRowsToEntries(rows) {
   const cleanHeaders = rows[headerIdx].map(h => h ? h.toString().toLowerCase().replace(/[^a-z0-9]/g, "") : "");
   
   let tsIdx = cleanHeaders.findIndex(h => h.includes("time"));
-  let firmIdx = cleanHeaders.findIndex(h => h.includes("firm"));
+  let nameIdx = cleanHeaders.findIndex(h => (h === "name" || h.includes("username")) && !h.includes("person") && !h.includes("firm"));
   let dateIdx = cleanHeaders.findIndex(h => h.includes("date"));
+  let deptIdx = cleanHeaders.findIndex(h => h.includes("dept"));
   let debitIdx = cleanHeaders.findIndex(h => h.includes("debit") || h.includes("outgoing"));
   let creditIdx = cleanHeaders.findIndex(h => h.includes("credit") || h.includes("incoming"));
-  let reasonIdx = cleanHeaders.findIndex(h => h.includes("reason") || h.includes("desc"));
   let ghIdx = cleanHeaders.findIndex(h => h.includes("group"));
+  let firmIdx = cleanHeaders.findIndex(h => h.includes("firm"));
+  let reasonIdx = cleanHeaders.findIndex(h => h.includes("reason") || h.includes("desc"));
+  let personIdx = cleanHeaders.findIndex(h => h.includes("person") || h.includes("given"));
   let photoIdx = cleanHeaders.findIndex(h => h.includes("photo") || h.includes("image"));
-  let balIdx = cleanHeaders.findIndex(h => h.includes("balance"));
+  let balIdx = cleanHeaders.findIndex(h => h.includes("balance") || h.includes("running"));
   let remarkIdx = cleanHeaders.findIndex(h => h.includes("remark"));
 
-  // Fallbacks if exact headers missing
+  // Fallbacks if exact headers missing matching exact sheet order
   if (tsIdx === -1) tsIdx = 0;
-  if (firmIdx === -1) firmIdx = 1;
+  if (nameIdx === -1) nameIdx = 1;
   if (dateIdx === -1) dateIdx = 2;
-  if (debitIdx === -1) debitIdx = 3;
-  if (creditIdx === -1) creditIdx = 4;
-  if (reasonIdx === -1) reasonIdx = 5;
+  if (deptIdx === -1) deptIdx = 3;
+  if (debitIdx === -1) debitIdx = 4;
+  if (creditIdx === -1) creditIdx = 5;
   if (ghIdx === -1) ghIdx = 6;
-  if (photoIdx === -1) photoIdx = 7;
-  if (balIdx === -1) balIdx = 8;
-  if (remarkIdx === -1) remarkIdx = 9;
+  if (firmIdx === -1) firmIdx = 7;
+  if (reasonIdx === -1) reasonIdx = 8;
+  if (personIdx === -1) personIdx = 9;
+  if (photoIdx === -1) photoIdx = 10;
 
   const entries = [];
   for (let i = headerIdx + 1; i < rows.length; i++) {
@@ -153,12 +157,15 @@ function mapRowsToEntries(rows) {
     entries.push({
       id: "PETE-" + (i + 1000),
       timestamp: row[tsIdx] ? row[tsIdx].toString() : "",
-      firmName: row[firmIdx] ? row[firmIdx].toString() : "",
+      name: row[nameIdx] ? row[nameIdx].toString() : "",
       date: formatDisplayDate(row[dateIdx]),
+      department: row[deptIdx] ? row[deptIdx].toString() : "",
       debitAmount: parseFloat(row[debitIdx]) || 0,
       creditAmount: parseFloat(row[creditIdx]) || 0,
-      reason: row[reasonIdx] ? row[reasonIdx].toString() : "",
       groupHead: row[ghIdx] ? row[ghIdx].toString() : "",
+      firmName: row[firmIdx] ? row[firmIdx].toString() : "",
+      reason: row[reasonIdx] ? row[reasonIdx].toString() : "",
+      personName: row[personIdx] ? row[personIdx].toString() : "",
       photoUrl: row[photoIdx] ? row[photoIdx].toString() : "",
       runningBalance: parseFloat(row[balIdx]) || 0,
       remarks: row[remarkIdx] ? row[remarkIdx].toString() : "",
@@ -167,9 +174,7 @@ function mapRowsToEntries(rows) {
       remark1: row[14] ? row[14].toString() : "",
       actual2: row[16] ? row[16].toString() : "",
       remark2: row[18] ? row[18].toString() : "",
-      createdBy: "user@pete.com",
-      department: "Factory",
-      personName: "",
+      createdBy: row[nameIdx] ? row[nameIdx].toString() : "user@pete.com",
       _rowIndex: i + 1
     });
   }
@@ -516,7 +521,11 @@ export const api = {
     let totalCredit = 0;
     let totalDebit = 0;
     const ghMap = {};
-    const deptMap = {};
+    const firmMap = {};
+    let hodApprovedCount = 0;
+    let hodPendingCount = 0;
+    let tallyVerifiedCount = 0;
+    let tallyPendingCount = 0;
 
     entries.forEach(e => {
       const credit = parseFloat(e.creditAmount) || 0;
@@ -527,12 +536,22 @@ export const api = {
       const gh = e.groupHead || "Other";
       ghMap[gh] = (ghMap[gh] || 0) + debit;
 
-      const dept = e.department || "Other";
-      deptMap[dept] = (deptMap[dept] || 0) + debit;
+      const firm = e.firmName || "Standard";
+      if (!firmMap[firm]) firmMap[firm] = { name: firm, debit: 0, credit: 0 };
+      firmMap[firm].debit += debit;
+      firmMap[firm].credit += credit;
+
+      const isHodApproved = e.status === 'Approved' || Boolean(e.actual1);
+      if (isHodApproved) hodApprovedCount++;
+      else hodPendingCount++;
+
+      const isTallyVerified = Boolean(e.actual2) || e.remark2 === 'Verified';
+      if (isTallyVerified) tallyVerifiedCount++;
+      else if (isHodApproved) tallyPendingCount++;
     });
 
     const groupHeadBreakdown = Object.keys(ghMap).map(k => ({ name: k, value: ghMap[k] })).sort((a, b) => b.value - a.value);
-    const departmentBreakdown = Object.keys(deptMap).map(k => ({ name: k, value: deptMap[k] })).sort((a, b) => b.value - a.value);
+    const firmBreakdown = Object.values(firmMap).sort((a, b) => (b.debit + b.credit) - (a.debit + a.credit));
 
     return {
       success: true,
@@ -542,7 +561,11 @@ export const api = {
         netBalance: totalCredit - totalDebit,
         entryCount: entries.length,
         groupHeadBreakdown,
-        departmentBreakdown
+        firmBreakdown,
+        hodApprovedCount,
+        hodPendingCount,
+        tallyVerifiedCount,
+        tallyPendingCount
       }
     };
   },
@@ -624,19 +647,20 @@ export const api = {
     
     let photoUrlStr = photoUrls.join(",");
 
-    // Exact Header Order for FMS sheet:
-    // Timestamp | Firm name | Date | Debit Amount (Outgoing) | Credit Amount (Incoming) | Reason | Group Head | Photo | Running Balance | Remark
+    // Exact Header Order for FMS sheet specified by user:
+    // 0: Timestamp | 1: Name | 2: Date | 3: Department | 4: Debit Amount (Outgoing) | 5: Credit Amount (Incoming) | 6: Group Head | 7: Firm Name | 8: Reason | 9: Name Of The Person Amount Given | 10: Photo
     const rowData = [
-      "",                                                    // 0: Timestamp (Untouched / empty)
-      payload.firmName || "",                                // 1: Firm name
+      new Date().toLocaleString('en-IN'),                    // 0: Timestamp
+      payload.name || "",                                    // 1: Name
       formattedDate,                                         // 2: Date (DD-MM-YYYY HH:mm:ss)
-      numDebit,                                              // 3: Debit Amount (Outgoing)
-      numCredit,                                             // 4: Credit Amount (Incoming)
-      payload.reason || "",                                  // 5: Reason
+      payload.department || "",                              // 3: Department
+      numDebit,                                              // 4: Debit Amount (Outgoing)
+      numCredit,                                             // 5: Credit Amount (Incoming)
       payload.groupHead || "",                               // 6: Group Head
-      photoUrlStr,                                           // 7: Photo (Google Drive Link)
-      newRunningBalance,                                     // 8: Running Balance
-      payload.remarks || ""                                  // 9: Remark
+      payload.firmName || "",                                // 7: Firm Name
+      payload.reason || "",                                  // 8: Reason
+      payload.personName || "",                              // 9: Name Of The Person Amount Given
+      photoUrlStr                                            // 10: Photo (Google Drive Link)
     ];
 
     await postGeneric("insert", "FMS", { rowData: JSON.stringify(rowData) });

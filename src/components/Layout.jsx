@@ -16,11 +16,12 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, role, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
-  const handleLogout = () => {
+  
+   const handleLogout = () => {
     logout();
     navigate('/login');
   };
@@ -48,13 +49,13 @@ export default function Layout() {
       name: 'HOD Approval',
       path: '/hod-approval',
       icon: ShieldCheck,
-      show: true
+      show: isAdmin || role === 'HOD'
     },
     {
       name: 'Tally Entry',
       path: '/tally-entry',
       icon: FileCheck,
-      show: true
+      show: isAdmin
     },
     {
       name: 'User Management',
@@ -63,7 +64,7 @@ export default function Layout() {
       show: isAdmin
     }
   ];
-
+  
   return (
     <div className="h-screen w-screen overflow-hidden bg-slate-50 text-slate-900 flex flex-col md:flex-row font-sans">
       {/* DESKTOP & TABLET SIDEBAR */}

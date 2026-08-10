@@ -83,17 +83,28 @@ export default function CreateEntryPage() {
   const [successToast, setSuccessToast] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
+  const [userName, setUserName] = useState(user?.name || user?.username || '');
+  const [userList, setUserList] = useState([]);
+
   // Fetch current latest balance and master data on load
   useEffect(() => {
     async function fetchData() {
       setLoadingBalance(true);
       setLoadingMaster(true);
       try {
-        const [bal, masterRes] = await Promise.all([
+        const [bal, masterRes, usersRes] = await Promise.all([
           api.getLatestBalance(),
-          api.getMasterData()
+          api.getMasterData(),
+          api.getUsers()
         ]);
         setCurrentBalance(bal);
+        if (usersRes && usersRes.success && usersRes.users) {
+          const names = [...new Set(usersRes.users.map(u => u.name || u.username).filter(Boolean))];
+          setUserList(names);
+          if (!userName && names.length > 0) {
+            setUserName(user?.name || user?.username || names[0]);
+          }
+        }
         if (masterRes.success && masterRes.data) {
           setMasterData(masterRes.data);
           
@@ -127,8 +138,9 @@ export default function CreateEntryPage() {
   if (!firmNames.includes('Other')) firmNames.push('Other');
 
   // Compute Live Running Balance Preview
-  const numDebit = parseFloat(debitAmount) || 0;
-  const numCredit = parseFloat(creditAmount) || 0;
+  const numAmount = parseFloat(amount) || 0;
+  const numDebit = entryType === 'DEBIT' ? numAmount : 0;
+  const numCredit = entryType === 'CREDIT' ? numAmount : 0;
   const liveBalancePreview = currentBalance + numCredit - numDebit;
 
   // Handle Photo Files Upload
@@ -174,8 +186,8 @@ export default function CreateEntryPage() {
       return;
     }
 
-    if (numDebit <= 0 && numCredit <= 0) {
-      setErrorMsg('Either Debit or Credit amount must be greater than 0.');
+    if (numAmount <= 0) {
+      setErrorMsg('Please enter a valid Amount greater than 0.');
       return;
     }
 
@@ -183,6 +195,7 @@ export default function CreateEntryPage() {
 
     try {
       const payload = {
+        name: userName || user?.name || user?.username || '',
         createdBy: user?.email || '',
         date,
         department: finalDept,
@@ -289,6 +302,31 @@ export default function CreateEntryPage() {
       {/* MAIN FORM CARD */}
       <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* NAME (SUBMITTER DROPDOWN) */}
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Name (User / Submitter) *</span>
+            </label>
+            <select
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none transition-all"
+            >
+              {userList.length > 0 ? (
+                userList.map((uName) => (
+                  <option key={uName} value={uName}>
+                    {uName}
+                  </option>
+                ))
+              ) : (
+                <option value={user?.name || user?.username || 'User'}>
+                  {user?.name || user?.username || 'User'}
+                </option>
+              )}
+            </select>
+          </div>
+
           {/* 1. DATE PICKER */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -334,48 +372,55 @@ export default function CreateEntryPage() {
             )}
           </div>
 
-          {/* 3. DEBIT AMOUNT */}
+          {/* 3. TRANSACTION TYPE */}
           <div>
-            <label className="block text-xs font-semibold text-rose-500 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Debit Amount (Outgoing / Expense) *</span>
-              <span className="text-[10px] text-slate-500">Cash Out</span>
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Transaction Type *</span>
             </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-rose-500 font-bold text-sm">₹</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={debitAmount}
-                onChange={(e) => {
-                  setDebitAmount(e.target.value);
-                  if (e.target.value > 0) setCreditAmount('');
-                }}
-                className="w-full bg-slate-50 border border-rose-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl pl-9 pr-4 py-3 text-sm text-rose-600 font-semibold placeholder-slate-400 outline-none transition-all"
-              />
-            </div>
+            <select
+              value={entryType}
+              onChange={(e) => setEntryType(e.target.value)}
+              className={`w-full bg-slate-50 border focus:ring-1 rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${
+                entryType === 'DEBIT' 
+                  ? 'border-rose-300 text-rose-600 focus:border-rose-500 focus:ring-rose-500' 
+                  : 'border-emerald-300 text-emerald-600 focus:border-emerald-500 focus:ring-emerald-500'
+              }`}
+            >
+              <option value="DEBIT">Debit</option>
+              <option value="CREDIT">Credit</option>
+            </select>
           </div>
 
-          {/* 4. CREDIT AMOUNT */}
+          {/* 4. AMOUNT (₹) */}
           <div>
-            <label className="block text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Credit Amount (Incoming / Deposit) *</span>
-              <span className="text-[10px] text-slate-500">Cash In</span>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span className={entryType === 'DEBIT' ? 'text-rose-500 font-bold' : 'text-emerald-600 font-bold'}>
+                {entryType === 'DEBIT' ? 'Debit Amount (Expense) *' : 'Credit Amount (Deposit) *'}
+              </span>
+              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                entryType === 'DEBIT' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+              }`}>
+                {entryType === 'DEBIT' ? 'CASH OUT' : 'CASH IN'}
+              </span>
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-emerald-600 font-bold text-sm">₹</span>
+              <span className={`absolute inset-y-0 left-0 pl-3.5 flex items-center font-bold text-sm ${
+                entryType === 'DEBIT' ? 'text-rose-500' : 'text-emerald-600'
+              }`}>₹</span>
               <input
                 type="number"
                 step="0.01"
-                min="0"
+                min="0.01"
+                required
                 placeholder="0.00"
-                value={creditAmount}
-                onChange={(e) => {
-                  setCreditAmount(e.target.value);
-                  if (e.target.value > 0) setDebitAmount('');
-                }}
-                className="w-full bg-slate-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl pl-9 pr-4 py-3 text-sm text-emerald-600 font-semibold placeholder-slate-400 outline-none transition-all"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className={`w-full bg-slate-50 border focus:ring-1 rounded-xl pl-9 pr-4 py-3 text-sm font-bold placeholder-slate-400 outline-none transition-all ${
+                  entryType === 'DEBIT'
+                    ? 'border-rose-200 text-rose-600 focus:border-rose-500 focus:ring-rose-500'
+                    : 'border-emerald-200 text-emerald-600 focus:border-emerald-500 focus:ring-emerald-500'
+                }`}
               />
             </div>
           </div>
@@ -511,29 +556,18 @@ export default function CreateEntryPage() {
             />
           </div>
 
-          {/* 8. REMARKS & GPS LOCATION */}
+          {/* 8. REMARKS (OPTIONAL) */}
           <div className="md:col-span-2">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Remarks & GPS Location</span>
-              </label>
-              <button
-                type="button"
-                onClick={handleDetectGps}
-                disabled={loadingGps}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 min-h-[36px]"
-              >
-                <Navigation className={`w-3.5 h-3.5 text-emerald-600 ${loadingGps ? 'animate-spin' : ''}`} />
-                <span>{loadingGps ? 'Detecting GPS...' : '📍 Auto-detect GPS Location'}</span>
-              </button>
-            </div>
-            <input
-              type="text"
-              placeholder="e.g. Additional notes, remarks, or GPS location..."
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Remarks (Optional)</span>
+            </label>
+            <textarea
+              rows="2"
+              placeholder="Additional notes or invoice details..."
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all shadow-sm min-h-[44px]"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl p-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all shadow-sm"
             />
           </div>
 

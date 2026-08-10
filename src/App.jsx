@@ -43,6 +43,16 @@ function AdminRoute({ children }) {
   return children;
 }
 
+// HOD or Admin Route wrapper
+function HODOrAdminRoute({ children }) {
+  const { user, role, isAdmin } = useAuth();
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin && role !== 'HOD') return <Navigate to="/" replace />;
+
+  return children;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -72,17 +82,17 @@ export default function App() {
             <Route
               path="hod-approval"
               element={
-                <ProtectedRoute>
+                <HODOrAdminRoute>
                   <HODApprovalPage />
-                </ProtectedRoute>
+                </HODOrAdminRoute>
               }
             />
             <Route
               path="tally-entry"
               element={
-                <ProtectedRoute>
+                <AdminRoute>
                   <TallyEntryPage />
-                </ProtectedRoute>
+                </AdminRoute>
               }
             />
           </Route>
