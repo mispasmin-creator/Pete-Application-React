@@ -15,7 +15,8 @@ import {
   Wallet,
   Search,
   ArrowRight,
-  RotateCcw
+  RotateCcw,
+  Navigation
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -28,12 +29,14 @@ export default function CreateEntryPage() {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
+  const [entryType, setEntryType] = useState('DEBIT');
   const [date, setDate] = useState(todayStr);
+  const [amount, setAmount] = useState('');
   const [department, setDepartment] = useState('');
   const [customDepartment, setCustomDepartment] = useState('');
   const [debitAmount, setDebitAmount] = useState('');
   const [creditAmount, setCreditAmount] = useState('');
-  const [groupHead, setGroupHead] = useState('');
+  const [groupHead, setGroupHead] = useState('Fuel');
   const [customGroupHead, setCustomGroupHead] = useState('');
   const [groupHeadSearch, setGroupHeadSearch] = useState('');
   const [isGroupHeadDropdownOpen, setIsGroupHeadDropdownOpen] = useState(false);
@@ -43,6 +46,31 @@ export default function CreateEntryPage() {
   const [remarks, setRemarks] = useState('');
   const [personName, setPersonName] = useState('');
   const [photos, setPhotos] = useState([]); // Base64 data strings or object { file, previewUrl, base64 }
+
+  // GPS Location State
+  const [loadingGps, setLoadingGps] = useState(false);
+
+  const handleDetectGps = () => {
+    if (!navigator.geolocation) {
+      alert('GPS Geolocation is not supported by your browser.');
+      return;
+    }
+    setLoadingGps(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(5);
+        const lng = position.coords.longitude.toFixed(5);
+        const locStr = `GPS: ${lat}, ${lng}`;
+        setRemarks(prev => (prev ? `${prev} | ${locStr}` : locStr));
+        setLoadingGps(false);
+      },
+      (error) => {
+        alert('Failed to detect GPS location: ' + error.message);
+        setLoadingGps(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const [currentBalance, setCurrentBalance] = useState(0);
   const [loadingBalance, setLoadingBalance] = useState(true);
@@ -483,18 +511,29 @@ export default function CreateEntryPage() {
             />
           </div>
 
-          {/* 8. REMARKS */}
+          {/* 8. REMARKS & GPS LOCATION */}
           <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Remarks</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Remarks & GPS Location</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleDetectGps}
+                disabled={loadingGps}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 min-h-[36px]"
+              >
+                <Navigation className={`w-3.5 h-3.5 text-emerald-600 ${loadingGps ? 'animate-spin' : ''}`} />
+                <span>{loadingGps ? 'Detecting GPS...' : '📍 Auto-detect GPS Location'}</span>
+              </button>
+            </div>
             <input
               type="text"
-              placeholder="e.g. Additional notes or comments..."
+              placeholder="e.g. Additional notes, remarks, or GPS location..."
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all shadow-sm"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all shadow-sm min-h-[44px]"
             />
           </div>
 
