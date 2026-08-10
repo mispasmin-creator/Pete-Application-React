@@ -27,6 +27,15 @@ export default function LoginPage() {
     <div className="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10 animate-fade-in">
         
+        {/* LOGO HEADER */}
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-slate-50 border border-slate-200 p-2 flex items-center justify-center shadow-sm">
+            <img src="/logo.png" alt="Pete Logo" className="w-full h-full object-contain" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Pete Cash</h2>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Sign in to access your account</p>
+        </div>
+        
         {authError && (
           <div className="mb-5 p-3 text-center bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-xs font-medium animate-fade-in">
             {authError}

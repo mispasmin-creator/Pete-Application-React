@@ -68,8 +68,8 @@ export default function Layout() {
         <div>
           {/* LOGO */}
           <div className="flex items-center space-x-3 pb-6 border-b border-slate-200">
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 shadow-md shadow-emerald-100">
-              <Wallet className="w-7 h-7" />
+            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 p-1.5 flex items-center justify-center shadow-sm">
+              <img src="/logo.png" alt="Pete Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="font-bold text-lg text-slate-900 tracking-wide">Pete Cash</h1>
@@ -135,8 +135,8 @@ export default function Layout() {
       {/* MOBILE TOP HEADER */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-            <Wallet className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 p-1 flex items-center justify-center">
+            <img src="/logo.png" alt="Pete Logo" className="w-full h-full object-contain" />
           </div>
           <span className="font-bold text-slate-900 tracking-tight text-base">Pete Cash</span>
         </div>
