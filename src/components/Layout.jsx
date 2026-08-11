@@ -81,24 +81,6 @@ export default function Layout() {
             </div>
           </div>
 
-          {/* USER INFO BADGE */}
-          <div className="mt-5 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-bold flex items-center justify-center text-xs shadow-md shrink-0">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <div className="overflow-hidden flex-1">
-              <p className="text-xs font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
-              <div className="flex items-center space-x-1.5 mt-0.5">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                  isAdmin ? 'bg-amber-500/20 text-amber-600 border border-amber-500/30' : 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
-                }`}>
-                  {isAdmin ? <ShieldCheck className="w-2.5 h-2.5 mr-1" /> : <UserCheck className="w-2.5 h-2.5 mr-1" />}
-                  {user?.role || 'User'}
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* NAVIGATION LINKS */}
           <nav className="mt-6 space-y-1.5">
             {navItems.filter(item => item.show).map((item) => {
@@ -124,8 +106,24 @@ export default function Layout() {
           </nav>
         </div>
 
-        {/* LOGOUT BUTTON */}
-        <div className="pt-4 border-t border-slate-200">
+        {/* USER INFO BADGE + LOGOUT BUTTON */}
+        <div className="pt-4 border-t border-slate-200 space-y-3">
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-bold flex items-center justify-center text-xs shadow-md shrink-0">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="overflow-hidden flex-1">
+              <p className="text-xs font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
+              <div className="flex items-center space-x-1.5 mt-0.5">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                  isAdmin ? 'bg-amber-500/20 text-amber-600 border border-amber-500/30' : 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
+                }`}>
+                  {isAdmin ? <ShieldCheck className="w-2.5 h-2.5 mr-1" /> : <UserCheck className="w-2.5 h-2.5 mr-1" />}
+                  {user?.role || 'User'}
+                </span>
+              </div>
+            </div>
+          </div>
           <button
             onClick={handleLogout}
             className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs lg:text-sm text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors min-h-[44px]"
@@ -200,17 +198,6 @@ export default function Layout() {
                 </button>
               </div>
 
-              {/* User Badge */}
-              <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white font-bold text-xs flex items-center justify-center">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
-                  <p className="text-[10px] text-slate-500">{user?.role}</p>
-                </div>
-              </div>
-
               {/* Navigation Items */}
               <nav className="mt-6 space-y-1.5">
                 {navItems.filter(item => item.show).map((item) => {
@@ -237,8 +224,17 @@ export default function Layout() {
               </nav>
             </div>
 
-            {/* Logout */}
-            <div className="pt-4 border-t border-slate-200">
+            {/* User Badge + Logout */}
+            <div className="pt-4 border-t border-slate-200 space-y-3">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white font-bold text-xs flex items-center justify-center">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
+                  <p className="text-[10px] text-slate-500">{user?.role}</p>
+                </div>
+              </div>
               <button
                 onClick={() => {
                   setIsMobileDrawerOpen(false);

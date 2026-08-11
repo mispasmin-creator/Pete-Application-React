@@ -105,7 +105,7 @@ function doPost(e) {
             return jsonSuccess("Data inserted successfully");
         }
 
-        // ============== OPTIMIZED UPDATE (20x FASTER) ==============
+        // ============== UPDATE (formula-safe) ==============
         else if (action === 'update') {
             var rowIndex = parseInt(params.rowIndex);
             var rowData = JSON.parse(params.rowData);
@@ -114,16 +114,16 @@ function doPost(e) {
                 throw new Error("Invalid row index for update");
             }
 
-            // OPTIMIZATION: Get existing row data first, then batch update
-            var existingData = sheet.getRange(rowIndex, 1, 1, rowData.length).getValues()[0];
+            var range = sheet.getRange(rowIndex, 1, 1, rowData.length);
+            var existingFormulas = range.getFormulas()[0];
 
-            // Merge: only update non-empty values
-            var mergedData = existingData.map(function (existingVal, i) {
-                return (rowData[i] !== '' && rowData[i] !== undefined) ? rowData[i] : existingVal;
-            });
-
-            // SINGLE batch operation instead of multiple setValue calls
-            sheet.getRange(rowIndex, 1, 1, mergedData.length).setValues([mergedData]);
+            // Only write cells that have a new value, and never touch a cell
+            // that already holds a formula (e.g. Planned 1 / Planned 2 / Delay columns)
+            for (var i = 0; i < rowData.length; i++) {
+                if (rowData[i] !== '' && rowData[i] !== undefined && !existingFormulas[i]) {
+                    sheet.getRange(rowIndex, i + 1).setValue(rowData[i]);
+                }
+            }
 
             SpreadsheetApp.flush();
 

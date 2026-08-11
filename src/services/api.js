@@ -110,9 +110,9 @@ async function postGeneric(action, sheetName, payload = {}) {
 function mapRowsToEntries(rows) {
   if (!rows || rows.length === 0) return [];
   
-  // Find which row actually contains the table headers (in case row 1 & 2 are titles)
+  // Find which row actually contains the table headers (real header is row 6 in the sheet)
   let headerIdx = 0;
-  for (let i = 0; i < Math.min(rows.length, 5); i++) {
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
     const rowStr = (rows[i] || []).join(" ").toLowerCase();
     if (rowStr.includes("date") || rowStr.includes("firm") || rowStr.includes("debit") || rowStr.includes("reason")) {
       headerIdx = i;
@@ -169,11 +169,11 @@ function mapRowsToEntries(rows) {
       photoUrl: row[photoIdx] ? row[photoIdx].toString() : "",
       runningBalance: parseFloat(row[balIdx]) || 0,
       remarks: row[remarkIdx] ? row[remarkIdx].toString() : "",
-      actual1: row[11] ? row[11].toString() : "",
-      status: row[13] ? row[13].toString() : (row[11] ? "Approved" : "Pending"),
-      remark1: row[14] ? row[14].toString() : "",
-      actual2: row[16] ? row[16].toString() : "",
-      remark2: row[18] ? row[18].toString() : "",
+      actual1: row[12] ? row[12].toString() : "",
+      status: row[14] ? row[14].toString() : (row[12] ? "Approved" : "Pending"),
+      remark1: row[15] ? row[15].toString() : "",
+      actual2: row[17] ? row[17].toString() : "",
+      remark2: row[19] ? row[19].toString() : "",
       createdBy: row[nameIdx] ? row[nameIdx].toString() : "user@pete.com",
       _rowIndex: i + 1
     });
@@ -734,13 +734,13 @@ export const api = {
 
     const targetRowIndex = payload.rowIndex || entry?._rowIndex;
     if (targetRowIndex) {
-      // Index 11 (Col L): Actual 1
-      // Index 13 (Col N): Status ("Approved" / "Rejected")
-      // Index 14 (Col O): Remark 1
-      const rowData = new Array(15).fill('');
-      rowData[11] = actual1;
-      rowData[13] = status;
-      rowData[14] = remark1;
+      // Index 12 (Col M): Actual 1
+      // Index 14 (Col O): Status ("Approved" / "Rejected")
+      // Index 15 (Col P): Remark 1
+      const rowData = new Array(16).fill('');
+      rowData[12] = actual1;
+      rowData[14] = status;
+      rowData[15] = remark1;
 
       await postGeneric("update", "FMS", { rowIndex: targetRowIndex, rowData: JSON.stringify(rowData) });
     }
@@ -765,11 +765,11 @@ export const api = {
 
     const targetRowIndex = payload.rowIndex || entry?._rowIndex;
     if (targetRowIndex) {
-      // Index 16 (Col Q): Actual 2
-      // Index 18 (Col S): Remark 2
-      const rowData = new Array(19).fill('');
-      rowData[16] = actual2;
-      rowData[18] = remark2;
+      // Index 17 (Col R): Actual 2
+      // Index 19 (Col T): Remark 2
+      const rowData = new Array(20).fill('');
+      rowData[17] = actual2;
+      rowData[19] = remark2;
 
       await postGeneric("update", "FMS", { rowIndex: targetRowIndex, rowData: JSON.stringify(rowData) });
     }
