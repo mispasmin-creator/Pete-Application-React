@@ -11,7 +11,8 @@ import {
   Eye, 
   FileText, 
   ExternalLink,
-  Search
+  Search,
+  Filter
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -27,6 +28,7 @@ export default function TallyEntryPage() {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [tallyRemark, setTallyRemark] = useState('');
   const [search, setSearch] = useState('');
+  const [groupHeadFilter, setGroupHeadFilter] = useState('All');
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -101,14 +103,17 @@ export default function TallyEntryPage() {
   };
 
   const currentList = activeTab === 'pending' ? entries : historyEntries;
+  const allGroupHeads = [...new Set([...entries, ...historyEntries].map(e => e.groupHead))].filter(Boolean);
   const filteredList = currentList.filter(e => {
     const s = search.toLowerCase();
-    return (
+    const matchesSearch = !s || (
       (e.firmName && e.firmName.toLowerCase().includes(s)) ||
       (e.reason && e.reason.toLowerCase().includes(s)) ||
       (e.groupHead && e.groupHead.toLowerCase().includes(s)) ||
       (e.personName && e.personName.toLowerCase().includes(s))
     );
+    const matchesGroupHead = groupHeadFilter === 'All' || e.groupHead === groupHeadFilter;
+    return matchesSearch && matchesGroupHead;
   });
 
   return (
@@ -176,16 +181,31 @@ export default function TallyEntryPage() {
           </button>
         </div>
 
-        {/* SEARCH */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search entries..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 outline-none"
-          />
+        {/* SEARCH & FILTER */}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search entries..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 outline-none"
+            />
+          </div>
+          <div className="relative w-full sm:w-48">
+            <Filter className="w-4 h-4 text-teal-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={groupHeadFilter}
+              onChange={(e) => setGroupHeadFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 outline-none"
+            >
+              <option value="All">All Group Heads</option>
+              {allGroupHeads.map(gh => (
+                <option key={gh} value={gh}>{gh}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -196,6 +216,7 @@ export default function TallyEntryPage() {
             <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
               <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Name</th>
                 <th className="py-3.5 px-4 bg-slate-100">Date</th>
                 <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                 <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -211,7 +232,7 @@ export default function TallyEntryPage() {
             <tbody className="divide-y divide-slate-100 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-500">
+                  <td colSpan={12} className="py-12 text-center text-slate-500">
                     <div className="inline-flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
                       <span>Loading entries...</span>
@@ -223,6 +244,9 @@ export default function TallyEntryPage() {
                   <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
                       {entry.firmName || '-'}
+                    </td>
+                    <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
+                      {entry.personName || '-'}
                     </td>
                     <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                       {entry.date || '-'}
@@ -322,7 +346,7 @@ export default function TallyEntryPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-400 text-xs">
+                  <td colSpan={12} className="py-12 text-center text-slate-400 text-xs">
                     No entries found in {activeTab === 'pending' ? 'Pending Tally Verification' : 'Verification History'}.
                   </td>
                 </tr>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ShieldCheck, CheckCircle, AlertCircle, RefreshCw, Check, X, Clock, History, Eye, FileText, ExternalLink } from 'lucide-react';
+import { ShieldCheck, CheckCircle, AlertCircle, RefreshCw, Check, X, Clock, History, Eye, FileText, ExternalLink, Search, Filter } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function HODApprovalPage() {
@@ -12,6 +12,8 @@ export default function HODApprovalPage() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [hodRemark, setHodRemark] = useState('');
+  const [search, setSearch] = useState('');
+  const [groupHeadFilter, setGroupHeadFilter] = useState('All');
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -96,6 +98,24 @@ export default function HODApprovalPage() {
     }).format(amount || 0);
   };
 
+  const allGroupHeads = [...new Set([...entries, ...historyEntries].map(e => e.groupHead))].filter(Boolean);
+
+  const applyFilters = (list) => list.filter(e => {
+    const s = search.trim().toLowerCase();
+    const matchesSearch = !s || (
+      (e.firmName && e.firmName.toLowerCase().includes(s)) ||
+      (e.reason && e.reason.toLowerCase().includes(s)) ||
+      (e.groupHead && e.groupHead.toLowerCase().includes(s)) ||
+      (e.personName && e.personName.toLowerCase().includes(s)) ||
+      (e.remarks && e.remarks.toLowerCase().includes(s))
+    );
+    const matchesGroupHead = groupHeadFilter === 'All' || e.groupHead === groupHeadFilter;
+    return matchesSearch && matchesGroupHead;
+  });
+
+  const filteredEntries = applyFilters(entries);
+  const filteredHistoryEntries = applyFilters(historyEntries);
+
   return (
     <div className="space-y-6 pb-8">
       {/* HEADER */}
@@ -151,6 +171,35 @@ export default function HODApprovalPage() {
         </button>
       </div>
 
+      {/* SEARCH & FILTER BAR */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search firm, reason, person, remark..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none"
+            />
+          </div>
+          <div className="relative sm:w-56 flex items-center">
+            <Filter className="w-4 h-4 text-emerald-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={groupHeadFilter}
+              onChange={(e) => setGroupHeadFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 outline-none"
+            >
+              <option value="All">All Group Heads</option>
+              {allGroupHeads.map(gh => (
+                <option key={gh} value={gh}>{gh}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* TOAST */}
       {toast.show && (
         <div className={`fixed bottom-4 right-4 md:bottom-10 md:right-10 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl z-50 animate-slide-up border ${toast.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-rose-500/10 border-rose-500/20 text-rose-600'}`}>
@@ -167,6 +216,7 @@ export default function HODApprovalPage() {
               <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
                 <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Name</th>
                   <th className="py-3.5 px-4 bg-slate-100">Date</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -181,15 +231,15 @@ export default function HODApprovalPage() {
               <tbody className="divide-y divide-slate-100 text-xs">
                 {loading ? (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-500">
+                    <td colSpan={11} className="py-12 text-center text-slate-500">
                       <div className="inline-flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
                         <span>Loading HOD approval entries...</span>
                       </div>
                     </td>
                   </tr>
-                ) : entries.length > 0 ? (
-                  entries.map((entry) => {
+                ) : filteredEntries.length > 0 ? (
+                  filteredEntries.map((entry) => {
                     const isCredit = entry.creditAmount > 0;
                     return (
                       <tr
@@ -200,6 +250,9 @@ export default function HODApprovalPage() {
                       >
                         <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
                           {entry.firmName || '-'}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
+                          {entry.personName || '-'}
                         </td>
                         <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                           {entry.date || '-'}
@@ -289,7 +342,7 @@ export default function HODApprovalPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-500 text-xs">
+                    <td colSpan={11} className="py-12 text-center text-slate-500 text-xs">
                       No pending entries found for HOD approval.
                     </td>
                   </tr>
@@ -308,6 +361,7 @@ export default function HODApprovalPage() {
               <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
                 <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Name</th>
                   <th className="py-3.5 px-4 bg-slate-100">Date</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -320,11 +374,14 @@ export default function HODApprovalPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {historyEntries.length > 0 ? (
-                  historyEntries.map((entry, idx) => (
+                {filteredHistoryEntries.length > 0 ? (
+                  filteredHistoryEntries.map((entry, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
                         {entry.firmName || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
+                        {entry.personName || '-'}
                       </td>
                       <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                         {entry.date || '-'}
@@ -408,7 +465,7 @@ export default function HODApprovalPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-500 text-xs">
+                    <td colSpan={11} className="py-12 text-center text-slate-500 text-xs">
                       No approval history records available yet.
                     </td>
                   </tr>

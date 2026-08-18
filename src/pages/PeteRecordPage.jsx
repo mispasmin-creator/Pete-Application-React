@@ -313,6 +313,7 @@ export default function PeteRecordPage() {
             <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
               <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Name</th>
                 <th className="py-3.5 px-4 bg-slate-100">Date</th>
                 <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                 <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -326,7 +327,7 @@ export default function PeteRecordPage() {
             <tbody className="divide-y divide-slate-100 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-500">
+                  <td colSpan={10} className="py-12 text-center text-slate-500">
                     <div className="inline-flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
                       <span>Loading records from Google Sheets...</span>
@@ -345,6 +346,9 @@ export default function PeteRecordPage() {
                     >
                       <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
                         {entry.firmName || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
+                        {entry.personName || '-'}
                       </td>
                       <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                         {entry.date || '-'}
@@ -422,7 +426,7 @@ export default function PeteRecordPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-500 text-xs">
+                  <td colSpan={10} className="py-12 text-center text-slate-500 text-xs">
                     No transactions match the selected criteria.
                   </td>
                 </tr>
