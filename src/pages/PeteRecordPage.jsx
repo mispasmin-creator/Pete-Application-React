@@ -35,6 +35,8 @@ export default function PeteRecordPage() {
   const [department, setDepartment] = useState('All');
   const [groupHead, setGroupHead] = useState('All');
   const [personName, setPersonName] = useState('');
+  const [firmNameFilter, setFirmNameFilter] = useState('All');
+  const [userNameFilter, setUserNameFilter] = useState('All');
 
   // Pagination & Sorting States
   const [page, setPage] = useState(1);
@@ -83,8 +85,26 @@ export default function PeteRecordPage() {
           return (userFirm && eFirm === userFirm) || (userEmail && eUser === userEmail);
         });
 
-        setEntries(filtered);
-        setTotalCount(filtered.length);
+        // Compute running balance on frontend: sort oldest→newest, calculate, then re-sort newest→oldest for display
+        const sortedOldFirst = [...filtered].sort((a, b) => {
+          const da = new Date(a.timestamp || a.date);
+          const db = new Date(b.timestamp || b.date);
+          return da - db;
+        });
+        let runBal = 0;
+        sortedOldFirst.forEach(e => {
+          runBal += (parseFloat(e.creditAmount) || 0) - (parseFloat(e.debitAmount) || 0);
+          e.runningBalance = runBal;
+        });
+        // Re-sort newest first for table display
+        sortedOldFirst.sort((a, b) => {
+          const da = new Date(a.timestamp || a.date);
+          const db = new Date(b.timestamp || b.date);
+          return db - da;
+        });
+
+        setEntries(sortedOldFirst);
+        setTotalCount(sortedOldFirst.length);
       }
     } catch (err) {
       console.error('Failed to fetch entries:', err);
@@ -194,6 +214,46 @@ export default function PeteRecordPage() {
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
+  // Apply frontend filters for Firm Name and User Name
+  const filteredRaw = entries.filter(e => {
+    const matchFirm = firmNameFilter === 'All' || e.firmName === firmNameFilter;
+    const matchUser = userNameFilter === 'All' || e.name === userNameFilter;
+    return matchFirm && matchUser;
+  });
+
+  // If any filter is active → recalculate running balance fresh for only filtered entries
+  // If no filter → use global running balance (already calculated)
+  const isFiltered = firmNameFilter !== 'All' || userNameFilter !== 'All';
+  let displayEntries;
+  if (isFiltered && filteredRaw.length > 0) {
+    // Sort oldest → newest
+    const sortedFiltered = [...filteredRaw].sort((a, b) => {
+      const da = new Date(a.timestamp || a.date);
+      const db = new Date(b.timestamp || b.date);
+      return da - db;
+    });
+    // Recalculate running balance fresh for this filtered set only
+    let bal = 0;
+    sortedFiltered.forEach(e => {
+      bal += (parseFloat(e.creditAmount) || 0) - (parseFloat(e.debitAmount) || 0);
+      e.runningBalance = bal;
+    });
+    // Re-sort newest → oldest for display
+    displayEntries = sortedFiltered.sort((a, b) => {
+      const da = new Date(a.timestamp || a.date);
+      const db = new Date(b.timestamp || b.date);
+      return db - da;
+    });
+  } else {
+    displayEntries = filteredRaw;
+  }
+
+  // Closing Balance Calculations (based on filtered displayEntries)
+  const totalCredit = displayEntries.reduce((sum, e) => sum + (parseFloat(e.creditAmount) || 0), 0);
+  const totalDebit = displayEntries.reduce((sum, e) => sum + (parseFloat(e.debitAmount) || 0), 0);
+  // Closing Balance = Total Credit (In) - Total Debit (Out)
+  const closingBalance = displayEntries.length > 0 ? (totalCredit - totalDebit) : null;
+
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* HEADER & TOP ACTIONS */}
@@ -243,9 +303,9 @@ export default function PeteRecordPage() {
           <span>Filter Transactions</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 text-xs">
           {/* SEARCH INPUT */}
-          <div className="lg:col-span-2 relative">
+          <div className="lg:col-span-2 xl:col-span-2 relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -303,8 +363,81 @@ export default function PeteRecordPage() {
               ))}
             </select>
           </div>
+
+          {/* FIRM NAME FILTER */}
+          <div>
+            <select
+              value={firmNameFilter}
+              onChange={(e) => { setFirmNameFilter(e.target.value); setPage(1); }}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl px-3 py-2.5 text-slate-900 outline-none"
+            >
+              <option value="All">All Firms</option>
+              {[...new Set(entries.map(e => e.firmName))].filter(Boolean).map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* USER NAME FILTER */}
+          <div>
+            <select
+              value={userNameFilter}
+              onChange={(e) => { setUserNameFilter(e.target.value); setPage(1); }}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl px-3 py-2.5 text-slate-900 outline-none"
+            >
+              <option value="All">All Users</option>
+              {[...new Set(entries.map(e => e.name))].filter(Boolean).map(u => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
+
+      {/* CLOSING BALANCE SUMMARY CARD */}
+      {!loading && displayEntries.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Total Credit */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Credit (In)</p>
+              <p className="text-xl font-bold text-emerald-600">{formatCurrency(totalCredit)}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-500 font-black text-lg">+</div>
+          </div>
+
+          {/* Total Debit */}
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl px-5 py-4 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-1">Total Debit (Out)</p>
+              <p className="text-xl font-bold text-rose-600">{formatCurrency(totalDebit)}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-500 font-black text-lg">−</div>
+          </div>
+
+          {/* Closing Balance */}
+          <div className={`rounded-2xl px-5 py-4 flex items-center justify-between shadow-sm border ${
+            closingBalance >= 0
+              ? 'bg-blue-50 border-blue-200'
+              : 'bg-orange-50 border-orange-200'
+          }`}>
+            <div>
+              <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${
+                closingBalance >= 0 ? 'text-blue-600' : 'text-orange-600'
+              }`}>Closing Balance</p>
+              <p className={`text-xl font-bold ${
+                closingBalance >= 0 ? 'text-blue-700' : 'text-orange-600'
+              }`}>{formatCurrency(closingBalance)}</p>
+              <p className="text-[9px] text-slate-400 mt-0.5">Latest Running Balance</p>
+            </div>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
+              closingBalance >= 0
+                ? 'bg-blue-100 text-blue-500'
+                : 'bg-orange-100 text-orange-500'
+            }`}>₹</div>
+          </div>
+        </div>
+      )}
 
       {/* TABLE DATA */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden">
@@ -313,7 +446,7 @@ export default function PeteRecordPage() {
             <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
               <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
-                <th className="py-3.5 px-4 bg-slate-100">Name</th>
+                <th className="py-3.5 px-4 bg-slate-100">Name (User / Person)</th>
                 <th className="py-3.5 px-4 bg-slate-100">Date</th>
                 <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                 <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -334,8 +467,8 @@ export default function PeteRecordPage() {
                     </div>
                   </td>
                 </tr>
-              ) : entries.length > 0 ? (
-                entries.map((entry) => {
+              ) : displayEntries.length > 0 ? (
+                displayEntries.map((entry) => {
                   const isCredit = entry.creditAmount > 0;
                   return (
                     <tr
@@ -347,8 +480,9 @@ export default function PeteRecordPage() {
                       <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
                         {entry.firmName || '-'}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
-                        {entry.personName || '-'}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-semibold text-slate-900 text-xs">{entry.name || '-'}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{entry.personName || ''}</p>
                       </td>
                       <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                         {entry.date || '-'}

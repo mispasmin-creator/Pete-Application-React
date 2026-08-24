@@ -14,6 +14,8 @@ export default function HODApprovalPage() {
   const [hodRemark, setHodRemark] = useState('');
   const [search, setSearch] = useState('');
   const [groupHeadFilter, setGroupHeadFilter] = useState('All');
+  const [firmNameFilter, setFirmNameFilter] = useState('All');
+  const [userNameFilter, setUserNameFilter] = useState('All');
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -99,6 +101,8 @@ export default function HODApprovalPage() {
   };
 
   const allGroupHeads = [...new Set([...entries, ...historyEntries].map(e => e.groupHead))].filter(Boolean);
+  const allFirmNames = [...new Set([...entries, ...historyEntries].map(e => e.firmName))].filter(Boolean);
+  const allUserNames = [...new Set([...entries, ...historyEntries].map(e => e.name))].filter(Boolean);
 
   const applyFilters = (list) => list.filter(e => {
     const s = search.trim().toLowerCase();
@@ -107,10 +111,13 @@ export default function HODApprovalPage() {
       (e.reason && e.reason.toLowerCase().includes(s)) ||
       (e.groupHead && e.groupHead.toLowerCase().includes(s)) ||
       (e.personName && e.personName.toLowerCase().includes(s)) ||
+      (e.name && e.name.toLowerCase().includes(s)) ||
       (e.remarks && e.remarks.toLowerCase().includes(s))
     );
     const matchesGroupHead = groupHeadFilter === 'All' || e.groupHead === groupHeadFilter;
-    return matchesSearch && matchesGroupHead;
+    const matchesFirm = firmNameFilter === 'All' || e.firmName === firmNameFilter;
+    const matchesUser = userNameFilter === 'All' || e.name === userNameFilter;
+    return matchesSearch && matchesGroupHead && matchesFirm && matchesUser;
   });
 
   const filteredEntries = applyFilters(entries);
@@ -173,8 +180,8 @@ export default function HODApprovalPage() {
 
       {/* SEARCH & FILTER BAR */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative flex-1 min-w-[180px]">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -184,7 +191,36 @@ export default function HODApprovalPage() {
               className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none"
             />
           </div>
-          <div className="relative sm:w-56 flex items-center">
+          {/* Firm Name Filter */}
+          <div className="relative sm:w-44 flex items-center">
+            <Filter className="w-4 h-4 text-emerald-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={firmNameFilter}
+              onChange={(e) => setFirmNameFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 outline-none"
+            >
+              <option value="All">All Firms</option>
+              {allFirmNames.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+          {/* User Name Filter */}
+          <div className="relative sm:w-44 flex items-center">
+            <Filter className="w-4 h-4 text-emerald-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={userNameFilter}
+              onChange={(e) => setUserNameFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 outline-none"
+            >
+              <option value="All">All Users</option>
+              {allUserNames.map(u => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+          {/* Group Head Filter */}
+          <div className="relative sm:w-44 flex items-center">
             <Filter className="w-4 h-4 text-emerald-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={groupHeadFilter}
@@ -216,7 +252,7 @@ export default function HODApprovalPage() {
               <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
                 <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
-                  <th className="py-3.5 px-4 bg-slate-100">Name</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Name (User / Person)</th>
                   <th className="py-3.5 px-4 bg-slate-100">Date</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -251,8 +287,9 @@ export default function HODApprovalPage() {
                         <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
                           {entry.firmName || '-'}
                         </td>
-                        <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
-                          {entry.personName || '-'}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <p className="font-semibold text-slate-900 text-xs">{entry.name || '-'}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">{entry.personName || ''}</p>
                         </td>
                         <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                           {entry.date || '-'}
@@ -361,7 +398,7 @@ export default function HODApprovalPage() {
               <thead className="sticky top-0 z-20 bg-slate-100 shadow-sm">
                 <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   <th className="py-3.5 px-4 bg-slate-100">Firm Name</th>
-                  <th className="py-3.5 px-4 bg-slate-100">Name</th>
+                  <th className="py-3.5 px-4 bg-slate-100">Name (User / Person)</th>
                   <th className="py-3.5 px-4 bg-slate-100">Date</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Debit (Out)</th>
                   <th className="py-3.5 px-4 text-right bg-slate-100">Credit (In)</th>
@@ -380,8 +417,9 @@ export default function HODApprovalPage() {
                       <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
                         {entry.firmName || '-'}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
-                        {entry.personName || '-'}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-semibold text-slate-900 text-xs">{entry.name || '-'}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{entry.personName || ''}</p>
                       </td>
                       <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                         {entry.date || '-'}
