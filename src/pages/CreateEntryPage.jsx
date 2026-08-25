@@ -388,8 +388,8 @@ export default function CreateEntryPage() {
               }`}
             >
               <option value="DEBIT">Debit</option>
-            </select>
               <option value="CREDIT">Credit</option>
+            </select>
           </div>
 
           {/* 4. AMOUNT (₹) */}
