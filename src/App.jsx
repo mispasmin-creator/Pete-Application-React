@@ -33,22 +33,14 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Admin-Only Route wrapper
-function AdminRoute({ children }) {
-  const { user, isAdmin } = useAuth();
+// Granular Page Permission Route wrapper
+function PageAccessRoute({ pagePath, children }) {
+  const { user, hasPermission } = useAuth();
 
   if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
-
-  return children;
-}
-
-// HOD or Admin Route wrapper
-function HODOrAdminRoute({ children }) {
-  const { user, role, isAdmin } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin && role !== 'HOD') return <Navigate to="/" replace />;
+  if (hasPermission && !hasPermission(pagePath)) {
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 }
@@ -69,30 +61,44 @@ export default function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="create-entry" element={<CreateEntryPage />} />
-            <Route path="pete-record" element={<PeteRecordPage />} />
+            <Route
+              path="create-entry"
+              element={
+                <PageAccessRoute pagePath="/create-entry">
+                  <CreateEntryPage />
+                </PageAccessRoute>
+              }
+            />
+            <Route
+              path="pete-record"
+              element={
+                <PageAccessRoute pagePath="/pete-record">
+                  <PeteRecordPage />
+                </PageAccessRoute>
+              }
+            />
             <Route
               path="user-management"
               element={
-                <AdminRoute>
+                <PageAccessRoute pagePath="/user-management">
                   <UserManagementPage />
-                </AdminRoute>
+                </PageAccessRoute>
               }
             />
             <Route
               path="hod-approval"
               element={
-                <HODOrAdminRoute>
+                <PageAccessRoute pagePath="/hod-approval">
                   <HODApprovalPage />
-                </HODOrAdminRoute>
+                </PageAccessRoute>
               }
             />
             <Route
               path="tally-entry"
               element={
-                <AdminRoute>
+                <PageAccessRoute pagePath="/tally-entry">
                   <TallyEntryPage />
-                </AdminRoute>
+                </PageAccessRoute>
               }
             />
           </Route>

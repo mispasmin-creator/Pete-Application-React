@@ -59,7 +59,8 @@ export default function PeteRecordPage() {
   const fetchEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const hasFullAccess = isAdmin || user?.firmName === 'All';
+      const userFirms = (user?.firmName || '').toLowerCase().split(',').map(f => f.trim()).filter(Boolean);
+      const hasFullAccess = isAdmin || user?.firmName === 'All' || userFirms.includes('all') || userFirms.length === 0;
       const params = {
         page,
         limit,
@@ -76,13 +77,12 @@ export default function PeteRecordPage() {
 
       const res = await api.getEntries(params);
       if (res.success && res.entries) {
-        const userFirm = (user?.firmName || '').toLowerCase().trim();
         const userEmail = (user?.email || '').toLowerCase().trim();
 
         const filtered = hasFullAccess ? res.entries : res.entries.filter(e => {
           const eFirm = (e.firmName || '').toLowerCase().trim();
           const eUser = (e.createdBy || '').toLowerCase().trim();
-          return (userFirm && eFirm === userFirm) || (userEmail && eUser === userEmail);
+          return (userFirms.length > 0 && userFirms.includes(eFirm)) || (userEmail && eUser === userEmail);
         });
 
         // Compute running balance on frontend: sort oldest→newest, calculate, then re-sort newest→oldest for display

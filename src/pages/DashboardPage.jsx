@@ -58,7 +58,8 @@ export default function DashboardPage() {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const hasFullAccess = isAdmin || user?.firmName === 'All';
+      const userFirms = (user?.firmName || '').toLowerCase().split(',').map(f => f.trim()).filter(Boolean);
+      const hasFullAccess = isAdmin || user?.firmName === 'All' || userFirms.includes('all') || userFirms.length === 0;
       const params = {
         timeframe,
         createdBy: hasFullAccess ? '' : (user?.email || ''),
@@ -75,13 +76,12 @@ export default function DashboardPage() {
       }
 
       if (entriesRes.success && entriesRes.entries) {
-        const userFirm = (user?.firmName || '').toLowerCase().trim();
         const userEmail = (user?.email || '').toLowerCase().trim();
 
         const filtered = hasFullAccess ? entriesRes.entries : entriesRes.entries.filter(e => {
           const eFirm = (e.firmName || '').toLowerCase().trim();
           const eUser = (e.createdBy || '').toLowerCase().trim();
-          return (userFirm && eFirm === userFirm) || (userEmail && eUser === userEmail);
+          return (userFirms.length > 0 && userFirms.includes(eFirm)) || (userEmail && eUser === userEmail);
         });
 
         setRecentEntries(filtered);

@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
-  const { user, role, isAdmin, logout } = useAuth();
+  const { user, role, isAdmin, hasPermission, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
@@ -31,37 +31,37 @@ export default function Layout() {
       name: 'Dashboard',
       path: '/',
       icon: LayoutDashboard,
-      show: true
+      show: hasPermission ? hasPermission('/') : true
     },
     {
       name: 'Create Entry',
       path: '/create-entry',
       icon: PlusCircle,
-      show: true
+      show: hasPermission ? hasPermission('/create-entry') : true
     },
     {
       name: 'Pete Record',
       path: '/pete-record',
       icon: Receipt,
-      show: true
+      show: hasPermission ? hasPermission('/pete-record') : true
     },
     {
       name: 'HOD Approval',
       path: '/hod-approval',
       icon: ShieldCheck,
-      show: isAdmin || role === 'HOD'
+      show: hasPermission ? hasPermission('/hod-approval') : (isAdmin || role === 'HOD')
     },
     {
       name: 'Tally Entry',
       path: '/tally-entry',
       icon: FileCheck,
-      show: isAdmin
+      show: hasPermission ? hasPermission('/tally-entry') : isAdmin
     },
     {
       name: 'User Management',
       path: '/user-management',
       icon: Users,
-      show: isAdmin
+      show: hasPermission ? hasPermission('/user-management') : isAdmin
     }
   ];
   

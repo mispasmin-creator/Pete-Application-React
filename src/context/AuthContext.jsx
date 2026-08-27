@@ -5,6 +5,37 @@ const AuthContext = createContext();
 
 const SESSION_KEY = 'pete_cash_user_session';
 
+export function hasPagePermission(userRole, pagePath) {
+  if (!userRole) return false;
+  const roleStr = String(userRole).trim();
+  const lower = roleStr.toLowerCase();
+
+  // Admin has full access to everything
+  if (lower === 'admin' || lower.includes('admin')) return true;
+
+  // Check specific page paths
+  if (pagePath === '/') {
+    return lower.includes('dashboard') || lower === 'user' || lower === 'hod' || lower === 'all';
+  }
+  if (pagePath === '/create-entry') {
+    return lower.includes('create') || lower.includes('entry') || lower === 'user' || lower === 'hod';
+  }
+  if (pagePath === '/pete-record') {
+    return lower.includes('record') || lower.includes('pete') || lower === 'user' || lower === 'hod';
+  }
+  if (pagePath === '/hod-approval') {
+    return lower.includes('hod') || lower.includes('approval');
+  }
+  if (pagePath === '/tally-entry') {
+    return lower.includes('tally');
+  }
+  if (pagePath === '/user-management') {
+    return lower.includes('user management') || lower.includes('users') || lower.includes('manage');
+  }
+
+  return false;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,10 +103,14 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(SESSION_KEY);
   };
 
+  const role = user ? user.role : null;
+  const isAdmin = user ? (user.role === 'Admin' || (typeof user.role === 'string' && user.role.toLowerCase().includes('admin'))) : false;
+
   const value = {
     user,
-    role: user ? user.role : null,
-    isAdmin: user ? user.role === 'Admin' : false,
+    role,
+    isAdmin,
+    hasPermission: (pagePath) => hasPagePermission(user?.role, pagePath),
     loading,
     authError,
     setAuthError,
