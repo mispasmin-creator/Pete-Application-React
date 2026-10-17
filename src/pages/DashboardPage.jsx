@@ -31,6 +31,7 @@ import {
 } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { toViewUrl } from '../utils/driveUrl';
 
 const BAR_COLORS = ['#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#64748b'];
 
@@ -528,7 +529,7 @@ export default function DashboardPage() {
                 <span className="text-xs font-semibold text-slate-600 block">Attached Receipt / Documents</span>
                 <div className="flex flex-wrap gap-2">
                   {selectedEntry.photoUrl.split(',').map((url, idx) => {
-                    const trimmedUrl = url.trim();
+                    const trimmedUrl = toViewUrl(url.trim());
                     if (!trimmedUrl) return null;
                     const isPdf = trimmedUrl.toLowerCase().includes('.pdf') || trimmedUrl.includes('application/pdf');
                     const isDriveLink = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://');

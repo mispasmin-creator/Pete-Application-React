@@ -256,9 +256,9 @@ function uploadFileToDrive(base64Data, fileName, mimeType, folderId) {
 
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-        return "https://drive.google.com/uc?export=view&id=" + file.getId();
+        return "https://drive.google.com/file/d/" + file.getId() + "/view";
     } catch (error) {
         console.error("Error in uploadFileToDrive:", error);
-        return null;
+        throw error;
     }
 }

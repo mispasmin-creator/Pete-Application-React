@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { toViewUrl } from '../utils/driveUrl';
 
 // Hardcoded options removed. Data is now fetched dynamically from the Master sheet.
 export default function PeteRecordPage() {
@@ -502,7 +503,7 @@ export default function PeteRecordPage() {
                       <td className="py-3.5 px-4 text-center">
                         {(() => {
                           if (!entry.photoUrl) return <span className="text-slate-400">-</span>;
-                          const firstUrl = entry.photoUrl.split(',')[0].trim();
+                          const firstUrl = toViewUrl(entry.photoUrl.split(',')[0].trim());
                           if (!firstUrl) return <span className="text-slate-400">-</span>;
 
                           const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
@@ -626,7 +627,7 @@ export default function PeteRecordPage() {
                 <span className="text-slate-500 font-semibold block mb-2">Attached Receipt / Documents:</span>
                 <div className="flex flex-wrap gap-2">
                   {viewEntry.photoUrl.split(',').map((url, i) => {
-                    const trimmedUrl = url.trim();
+                    const trimmedUrl = toViewUrl(url.trim());
                     if (!trimmedUrl) return null;
                     const isPdf = trimmedUrl.toLowerCase().includes('.pdf') || trimmedUrl.includes('application/pdf');
                     const isDriveLink = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://');

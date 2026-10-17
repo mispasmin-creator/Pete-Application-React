@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { toViewUrl } from '../utils/driveUrl';
 
 export default function TallyEntryPage() {
   const { user, isAdmin } = useAuth();
@@ -304,7 +305,7 @@ export default function TallyEntryPage() {
                     <td className="py-3.5 px-4 text-center">
                       {(() => {
                         if (!entry.photoUrl) return <span className="text-slate-400">-</span>;
-                        const firstUrl = entry.photoUrl.split(',')[0].trim();
+                        const firstUrl = toViewUrl(entry.photoUrl.split(',')[0].trim());
                         if (!firstUrl) return <span className="text-slate-400">-</span>;
 
                         const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
@@ -423,7 +424,7 @@ export default function TallyEntryPage() {
               <div>
                 <span className="text-xs font-semibold text-slate-600 block mb-1.5">Attached Receipt / Document:</span>
                 {(() => {
-                  const firstUrl = selectedEntry.photoUrl.split(',')[0].trim();
+                  const firstUrl = toViewUrl(selectedEntry.photoUrl.split(',')[0].trim());
                   const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
                   const isDriveLink = firstUrl.startsWith('http://') || firstUrl.startsWith('https://');
 

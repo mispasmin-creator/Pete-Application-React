@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ShieldCheck, CheckCircle, AlertCircle, RefreshCw, Check, X, Clock, History, Eye, FileText, ExternalLink, Search, Filter } from 'lucide-react';
 import { api } from '../services/api';
+import { toViewUrl } from '../utils/driveUrl';
 
 export default function HODApprovalPage() {
   const [activeTab, setActiveTab] = useState('pending'); // 'pending' | 'history'
@@ -309,7 +310,7 @@ export default function HODApprovalPage() {
                         <td className="py-3.5 px-4 text-center">
                           {(() => {
                             if (!entry.photoUrl) return <span className="text-slate-400">-</span>;
-                            const firstUrl = entry.photoUrl.split(',')[0].trim();
+                            const firstUrl = toViewUrl(entry.photoUrl.split(',')[0].trim());
                             if (!firstUrl) return <span className="text-slate-400">-</span>;
 
                             const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
@@ -439,7 +440,7 @@ export default function HODApprovalPage() {
                       <td className="py-3.5 px-4 text-center">
                         {(() => {
                           if (!entry.photoUrl) return <span className="text-slate-400">-</span>;
-                          const firstUrl = entry.photoUrl.split(',')[0].trim();
+                          const firstUrl = toViewUrl(entry.photoUrl.split(',')[0].trim());
                           if (!firstUrl) return <span className="text-slate-400">-</span>;
 
                           const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
@@ -543,7 +544,7 @@ export default function HODApprovalPage() {
             {selectedEntry.photoUrl && (
               <div>
                 {(() => {
-                  const firstUrl = selectedEntry.photoUrl.split(',')[0].trim();
+                  const firstUrl = toViewUrl(selectedEntry.photoUrl.split(',')[0].trim());
                   const isPdf = firstUrl.toLowerCase().includes('.pdf') || firstUrl.includes('application/pdf');
                   const isDriveLink = firstUrl.startsWith('http://') || firstUrl.startsWith('https://');
 
