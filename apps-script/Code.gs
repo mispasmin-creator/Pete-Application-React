@@ -99,6 +99,13 @@ function doPost(e) {
             // Use appendRow for single row - it's optimized internally
             sheet.appendRow(rowData);
 
+            // Every FMS entry is immediately planned for HOD review. Older
+            // rows relied on a sheet formula that was not copied by appendRow.
+            if (sheetName === "FMS" && !rowData[11]) {
+                var appendedRow = sheet.getLastRow();
+                sheet.getRange(appendedRow, 12).setValue(rowData[0] || new Date());
+            }
+
             // Flush to ensure immediate write
             SpreadsheetApp.flush();
 

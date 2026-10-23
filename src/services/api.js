@@ -647,10 +647,12 @@ export const api = {
     
     let photoUrlStr = photoUrls.join(",");
 
+    const submittedAt = new Date().toLocaleString('en-IN');
+
     // Exact Header Order for FMS sheet specified by user:
-    // 0: Timestamp | 1: Name | 2: Date | 3: Department | 4: Debit Amount (Outgoing) | 5: Credit Amount (Incoming) | 6: Group Head | 7: Firm Name | 8: Reason | 9: Name Of The Person Amount Given | 10: Photo
+    // 0: Timestamp | 1: Name | 2: Date | 3: Department | 4: Debit Amount (Outgoing) | 5: Credit Amount (Incoming) | 6: Group Head | 7: Firm Name | 8: Reason | 9: Name Of The Person Amount Given | 10: Photo | 11: Planned 1
     const rowData = [
-      new Date().toLocaleString('en-IN'),                    // 0: Timestamp
+      submittedAt,                                           // 0: Timestamp
       payload.name || "",                                    // 1: Name
       formattedDate,                                         // 2: Date (DD-MM-YYYY HH:mm:ss)
       payload.department || "",                              // 3: Department
@@ -660,7 +662,8 @@ export const api = {
       payload.firmName || "",                                // 7: Firm Name
       payload.reason || "",                                  // 8: Reason
       payload.personName || "",                              // 9: Name Of The Person Amount Given
-      photoUrlStr                                            // 10: Photo (Google Drive Link)
+      photoUrlStr,                                           // 10: Photo (Google Drive Link)
+      submittedAt                                            // 11: Planned 1 (entry becomes available to HOD)
     ];
 
     await postGeneric("insert", "FMS", { rowData: JSON.stringify(rowData) });
@@ -737,10 +740,12 @@ export const api = {
       // Index 12 (Col M): Actual 1
       // Index 14 (Col O): Status ("Approved" / "Rejected")
       // Index 15 (Col P): Remark 1
-      const rowData = new Array(16).fill('');
+      // Index 16 (Col Q): Planned 2 (approved entry becomes available to Tally)
+      const rowData = new Array(17).fill('');
       rowData[12] = actual1;
       rowData[14] = status;
       rowData[15] = remark1;
+      if (status === 'Approved') rowData[16] = actual1;
 
       await postGeneric("update", "FMS", { rowIndex: targetRowIndex, rowData: JSON.stringify(rowData) });
     }
